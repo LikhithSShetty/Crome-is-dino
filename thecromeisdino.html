@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Defines the metadata for the webpage, including the title and styles -->
+    <title>Crome is Dino </title>
+    <style>
+        /* Styles the canvas with a border and background */
+        canvas {
+            border: 10px solid   rgb(218, 106, 50);
+            background: rgb(145, 208, 215);
+        }
+        /* Centers the canvas within the browser window */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Sets full viewport height */
+            margin: 0; /* Removes default browser margin */
+            background: #0e0e0e; /* Light gray background */
+        }
+    </style>
+</head>
+<body>
+    <!-- The canvas element where the game will be rendered -->
+    <canvas id="gameCanvas" width="600" height="200"></canvas>
+    <script>
+        // Get the canvas element and its rendering context for 2D drawing
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Define the player object with properties for position, size, and motion
+        const player = {
+            x: 50, // Horizontal position
+            y: 150, // Vertical position
+            size: 30, // Diameter of the player circle
+            dy: 0, // Vertical velocity
+            jumpForce: -12, // Force applied when jumping
+            gravity: 0.8, // Gravity affecting the player
+            isJumping: false // Indicates if the player is in the air
+        };
+
+        // Initialize score, obstacles array, game speed, and game-over flag
+        let score = 0;
+        let obstacles = [];
+        let gameSpeed = 5; // Speed at which obstacles move
+        let isGameOver = false;
+
+        // Function to draw the player as a circle on the canvas
+        function drawPlayer() {
+            ctx.beginPath(); // Start a new drawing path
+            ctx.arc(player.x, player.y, player.size/2, 0, Math.PI * 2); // Draw a circle
+            ctx.fillStyle = '#4285f4'; // Set fill color (blue)
+            ctx.fill(); // Fill the circle
+            ctx.closePath(); // End the path
+        }
+
+        // Function to draw a single obstacle (rectangle)
+        function drawObstacle(obstacle) {
+            ctx.fillStyle = obstacle.color; // Set the obstacle's color
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height); // Draw the rectangle
+        }
+
+        // Function to create a new obstacle and add it to the obstacles array
+        function createObstacle() {
+            const colors = ['#FF4444', '#FF9900', '#0078D7', '#00A300']; // Possible obstacle colors
+            obstacles.push({
+                x: canvas.width, // Start at the right edge of the canvas
+                y: 150, // Position on the ground
+                width: 20, // Obstacle width
+                height: 30, // Obstacle height
+                color: colors[Math.floor(Math.random() * colors.length)] // Random color
+            });
+        }
+
+        // Function to make the player jump
+        function jump() {
+            if (!player.isJumping && !isGameOver) { // Only jump if not already jumping or game over
+                player.isJumping = true;
+                player.dy = player.jumpForce; // Apply upward force
+            }
+        }
+
+        // Function to display the "Game Over" message on the canvas
+        function showGameOver() {
+            ctx.fillStyle = 'black'; // Set text color
+            ctx.font = '30px Arial'; // Set font style
+            ctx.fillText('Game Over! Press Space', canvas.width/2 - 150, canvas.height/2); // Display text
+        }
+
+        // Main game loop to update game state and render objects
+        function updateGame() {
+            if (!isGameOver) {
+                // Update player position and gravity effect
+                if (player.isJumping) {
+                    player.y += player.dy; // Update vertical position
+                    player.dy += player.gravity; // Apply gravity to velocity
+
+                    if (player.y >= 150) { // Check if player lands on the ground
+                        player.y = 150; // Reset position to ground
+                        player.isJumping = false; // Mark as not jumping
+                    }
+                }
+
+                // Update positions of obstacles
+                obstacles = obstacles.filter(obstacle => {
+                    obstacle.x -= gameSpeed; // Move obstacle left
+                    
+                    // Check collision between player and obstacle
+                    if (
+                        player.x + player.size/2 > obstacle.x && // Player right edge > Obstacle left edge
+                        player.x - player.size/2 < obstacle.x + obstacle.width && // Player left edge < Obstacle right edge
+                        player.y + player.size/2 > obstacle.y && // Player bottom edge > Obstacle top edge
+                        player.y - player.size/2 < obstacle.y + obstacle.height // Player top edge < Obstacle bottom edge
+                    ) {
+                        isGameOver = true; // End game on collision
+                    }
+                    
+                    return obstacle.x > -obstacle.width; // Keep obstacles still visible
+                });
+
+                // Increment score continuously
+                score++;
+            }
+
+            // Clear the canvas before redrawing everything
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the ground as a horizontal line
+            ctx.beginPath();
+            ctx.moveTo(0, 180);
+            ctx.lineTo(canvas.width, 180);
+            ctx.stroke();
+            
+            // Draw the score at the top right
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText('Score: ' + Math.floor(score/10), 500, 30);
+            
+            // Draw player and obstacles
+            drawPlayer();
+            obstacles.forEach(drawObstacle);
+            
+            // Show game-over screen if applicable
+            if (isGameOver) {
+                showGameOver();
+            }
+
+            // Request the next animation frame to keep the game running
+            requestAnimationFrame(updateGame);
+        }
+
+        // Reset the game state to initial values
+        function resetGame() {
+            player.y = 150; // Reset player position
+            player.dy = 0; // Reset velocity
+            player.isJumping = false; // Reset jump state
+            obstacles = []; // Clear obstacles
+            score = 0; // Reset score
+            gameSpeed = 5; // Reset speed
+            isGameOver = false; // Reset game-over flag
+        }
+
+        // Listen for key presses and mouse clicks to control the game
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') { // Check if the spacebar was pressed
+        e.preventDefault(); // Prevent the default browser scroll
+        if (isGameOver) {
+            resetGame(); // Restart game if it's over
+        } else {
+            jump(); // Make the player jump
+        }
+    }
+});
+
+document.addEventListener('mousedown', (e) => {
+    if (e.button === 0) { // Check if the left mouse button was clicked
+        if (isGameOver) {
+            resetGame(); // Restart game if it's over
+        } else {
+            jump(); // Make the player jump
+        }
+    }
+});
+
+
+        // Periodically create new obstacles every 2 seconds
+        setInterval(() => {
+            if (!isGameOver) createObstacle();
+        }, 2000);
+
+        // Start the game loop
+        updateGame();
+    </script>
+</body>
+</html>
