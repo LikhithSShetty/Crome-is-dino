@@ -4,8 +4,10 @@
     <title>Chrome Dino - Day Night Cycle</title>
     <style>
         canvas {
-            border: 10px solid rgb(98, 141, 243);
-            background: rgb(181, 225, 180);
+            background: rgb(250, 185, 144);
+           
+            border: 10px solid rgb(143, 159, 198);
+           
             transition: background-color 2s ease;
         }
         body {
@@ -36,8 +38,8 @@
 
         // Add day/night cycle properties
         const dayNightCycle = {
-            dayColor: 'rgb(145, 208, 215)',
-            nightColor: 'rgb(25, 25, 112)',
+            dayColor: 'rgb(192, 236, 255)',
+            nightColor: ' rgb(250, 185, 144)',
             current: 0,
             isNight: false
         };
@@ -66,7 +68,7 @@
         function drawPlayer() {
             ctx.beginPath();
             ctx.arc(player.x, player.y, player.size/2, 0, Math.PI * 2);
-            ctx.fillStyle = '#FF9900';
+            ctx.fillStyle = '#003366';
             ctx.fill();
             ctx.closePath();
         }
@@ -128,7 +130,7 @@
 
         // Function to update day/night cycle
         function updateDayNightCycle() {
-            const cycleDuration = 5000;
+            const cycleDuration = 500;
             const currentCycle = Math.floor(score / cycleDuration);
             const cycleProgress = (score % cycleDuration) / cycleDuration;
             
